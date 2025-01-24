@@ -1,0 +1,38 @@
+﻿@model MailingList.Dtos.GetCreateEmailDTO
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<h1>Добро пожаловать на страницу Email</h1>
+<a href="/Email/Index" class="btn btn-primary" style="margin-bottom:20px">Список отправленных писем</a>
+<a href="/Contact/Index" class="btn btn-primary" style="margin-bottom:20px">Список Контактов</a>
+<div>
+    <h1>Написать письмо</h1>
+    <form asp-action="CreateEmail" asp-controller="Email" method="post">
+    <div class="form-group">
+        <label for="Email"> Email</label>
+        <select id="ContactId" name="ContactId" required>  @*2/3 Change to select*@ 
+            <option value="">"Choose contact"</option>
+                @foreach(var contact in Model.Contacts)
+                {
+                    <option value="@contact.Value">@contact.Text</option>
+                }
+        </select>
+            
+    </div>
+    <div class="form-group">
+        <label for="Subject">Subject</label>
+            <input type="text" id="Subject" name="Subject" placeholder="Введите тему письма" required>
+    </div>
+    <div class="form-group">
+        <label for="Body">Text</label>
+            <textarea id="Body" name="Body" rows="5" placeholder="Введите текст" required></textarea>
+    </div>
+
+        <button type="submit">Отправить</button>
+    </form>
+
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-success">@ViewBag.Message</div>
+}
+</div>

@@ -1,0 +1,28 @@
+﻿@model MailingList.Models.CreateContactDTO
+
+
+<h1>Добро пожаловать на страницу Контактов</h1>
+<a href="/Contact/Index" class="btn btn-primary" style="margin-bottom:20px">Список Контактов</a>
+<div>
+    <h1>Создать контакт</h1>
+    <form asp-action="CreateContact" asp-controller="Contact" method="post">
+        <div class="form-group">
+            <label for="Email">Email</label>
+            <input type="email" id="Email" name="Email" placeholder="Введите почту" required>
+        </div>
+        <div class="form-group">
+            <label for="Name">Name</label>
+            <input type="text" id="Name" name="Name" placeholder="Введите Имя" required>
+        </div>
+       
+
+        <button type="submit">Сохранить</button>
+    </form>
+
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert alert-success">@ViewBag.Message</div>
+    }
+</div>
+

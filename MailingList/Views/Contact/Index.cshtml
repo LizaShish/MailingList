@@ -1,0 +1,44 @@
+﻿@model MailingList.Models.ReadContactDTO
+
+<h1>Список всех контактов</h1>
+<a href="/Contact/CreateContact" class="btn btn-primary" style="margin-bottom:20px">Добавить контакт</a>
+<a href="/Email/Index" class="btn btn-primary" style="margin-bottom:20px">Вернуться на главную</a>
+<form method="get" asp-action="Index" asp-controller="Contact">
+    <input type="text" name="searchString" placeholder="Поиск..." value="@Model.SearchTerm" />
+    <button type="submit">Искать</button>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var contact in Model.Contacts)
+        {
+            <tr>
+                <td>@contact.Email</td>
+                <td>@contact.Name</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>
+    @if (Model.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Contacts", new { page = i, searchString = Model.SearchTerm })">@i</a>
+                    </li>
+                }
+
+            </ul>
+        </nav>
+    }
+</div>
