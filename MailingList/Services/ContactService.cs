@@ -1,10 +1,12 @@
 ﻿using MailingList.Dtos;
+using MailingList.Extensions;
+using MailingList.Interface;
 using MailingList.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MailingList.Services
 {
-    public class ContactService
+    public class ContactService : IContactService
     {
         public readonly AppDBContext _appDBContext;
 
@@ -21,9 +23,10 @@ namespace MailingList.Services
                 Name = c.Name,
                 Id = c.Id
             }) .ToListAsync();
+
             return contacts;
         }
-        //1 написать метод, который возвращает имейл контакта по его айди 
+
         public async Task<string> GetContactEmailByIdAsync(string contactId)
         {
             Guid contactGuid = new Guid(contactId);
@@ -38,7 +41,6 @@ namespace MailingList.Services
             {
                 return null;
             }
-
         }
 
         public async Task<ReadContactDTO> GetContactsAsync(string searchString = null, int page = 1, int pageSize = 10)
@@ -48,20 +50,10 @@ namespace MailingList.Services
                 page = 1;
             }
 
-            var contactsQuery = _appDBContext.Contacts.AsQueryable();
+            var contactsQuery = _appDBContext.Contacts.AsQueryable()
+                .FilterBySearchString(searchString);
 
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                contactsQuery = contactsQuery.Where(contact => contact.Name.Contains(searchString) ||
-                contact.Email.Contains(searchString));
-                //return await _appDBContext.Contacts.ToListAsync();
-            }
-
-            /*var contacts = await _appDBContext.Contacts
-                .Where(contact => contact.Name.Contains(searchString) || 
-                contact.Email.Contains(searchString)).ToListAsync();*/
-            
-            var contactsCount = await _appDBContext.Contacts.CountAsync();
+            var contactsCount = await contactsQuery.CountAsync();
 
             var paginatedContacts = await _appDBContext.Contacts
                 .Skip((page - 1) * pageSize)
@@ -79,7 +71,6 @@ namespace MailingList.Services
                 SearchTerm = searchString
             };
 
-            //return contacts;
             return modelContact;
         }
         public async Task CreateContactAsync (CreateContactDTO createContactDTO)
@@ -89,9 +80,9 @@ namespace MailingList.Services
                 Name = createContactDTO.Name,
                 Email = createContactDTO.Email
             };
+
             _appDBContext.Contacts.Add(contact);
             await _appDBContext.SaveChangesAsync();
         }
-
     }
 }

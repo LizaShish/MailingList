@@ -1,4 +1,5 @@
 ﻿using MailingList.Dtos;
+using MailingList.Interface;
 using MailingList.Models;
 using MailingList.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -11,14 +12,13 @@ namespace MailingList.Controllers
 {
     public class EmailController : Controller
     {
-        private readonly EmailService _emailService;
+        private readonly IEmailService _emailService;
         private readonly AppDBContext _appDBContext;
-        private readonly ContactService _contactService;
+        private readonly IContactService _contactService;
 
-        public EmailController(EmailService emailService, AppDBContext appDBContext, ContactService contactService)
+        public EmailController(IEmailService emailService, IContactService contactService)
         {
             _emailService = emailService;
-            _appDBContext = appDBContext;
             _contactService = contactService;
         }
 
@@ -32,10 +32,6 @@ namespace MailingList.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateEmail()    
         {
-            // call _contactService.GetContacts()
-            // create & initialize GetCreateEmailDTO            2/3
-            // put contacts to GetCreateEmailDTO
-            // return GetCreateEmailDTO
             var сontacts = await _contactService.GetContactsForEmailCreating();
 
             var getCreateEmailDTO = new GetCreateEmailDTO
@@ -48,27 +44,34 @@ namespace MailingList.Controllers
             };
             return View(getCreateEmailDTO);
         }  
-        //вызвать метод, получить имейл
-        [HttpPost]
-        public async Task<IActionResult> CreateEmail(CreateEmailMessageDTO createEmailMessageDTO) // rename to CreateEmail
-        {
 
+        [HttpPost]
+        public async Task<IActionResult> CreateEmail(CreateEmailMessageDTO createEmailMessageDTO)
+        {
             if(!ModelState.IsValid)
             {
                 return View("createEmailMessageDTO");
             }
-            
 
             try
             {
                 var email = await _contactService.GetContactEmailByIdAsync(createEmailMessageDTO.ContactId);
 
-                await _emailService.SentEmailAsync(email, createEmailMessageDTO.Subject, createEmailMessageDTO.Body);
+                await _emailService.SentEmailAsync(email, createEmailMessageDTO.Subject,
+                    createEmailMessageDTO.Body);
 
                 await _emailService.SaveEmailMessageAsync(createEmailMessageDTO);
+                var сontacts = await _contactService.GetContactsForEmailCreating();
 
-                //return Ok("Письмо успешно отправлено и сохранено.");
-                return View("Index");
+                var getCreateEmailDTO = new GetCreateEmailDTO
+                {
+                    Contacts = сontacts.Select(c => new SelectListItem
+                    {
+                        Value = c.Id.ToString(),
+                        Text = $"{c.Name} ({c.Email})"
+                    }).ToList()
+                };
+                return View("CreateEmail", getCreateEmailDTO);
             }
 
             catch (Exception ex)

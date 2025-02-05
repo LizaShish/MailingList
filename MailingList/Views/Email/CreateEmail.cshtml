@@ -9,7 +9,7 @@
     <form asp-action="CreateEmail" asp-controller="Email" method="post">
     <div class="form-group">
         <label for="Email"> Email</label>
-        <select id="ContactId" name="ContactId" required>  @*2/3 Change to select*@ 
+        <select id="ContactId" name="ContactId" required>
             <option value="">"Choose contact"</option>
                 @foreach(var contact in Model.Contacts)
                 {
@@ -29,7 +29,6 @@
 
         <button type="submit">Отправить</button>
     </form>
-
 
 @if (ViewBag.Message != null)
 {

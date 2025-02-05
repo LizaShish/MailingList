@@ -1,4 +1,5 @@
 using MailingList;
+using MailingList.Interface;
 using MailingList.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,8 +10,8 @@ string connectionString = builder.Configuration.GetConnectionString("DefaultConn
 builder.Services.AddDbContext<AppDBContext>(options =>
     options.UseNpgsql(connectionString));
 
-builder.Services.AddScoped<EmailService>(); //todo: сделать scoped, почитать про разные варианты регитсрации в контейнере зависимостей
-builder.Services.AddScoped<ContactService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddControllersWithViews();
 builder.Services.AddCors(options =>

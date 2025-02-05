@@ -1,4 +1,5 @@
-﻿using MailingList.Models;
+﻿using MailingList.Interface;
+using MailingList.Models;
 using MailingList.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,12 +9,11 @@ namespace MailingList.Controllers
 {
     public class ContactController : Controller
     {
-        private readonly ContactService _contactService;
+        private readonly IContactService _contactService;
 
-        public ContactController(ContactService contactService)
+        public ContactController(IContactService contactService)
         {
             _contactService = contactService;
-           
         }
 
         [HttpGet]
@@ -21,20 +21,15 @@ namespace MailingList.Controllers
         {
             var readContactsDTO = await _contactService.GetContactsAsync(searchString, page, pageSize);
             return View(readContactsDTO); 
-            // достать контакты в сервисе 
-
-            //var contactList = await _contactService.GetContactEmailByIdAsync( contactId);
-            //return View(contactList);
         }
 
         [HttpGet]
         public async Task<IActionResult> CreateContact() 
         {
             return View();
-            
         }
 
-            [HttpPost]
+        [HttpPost]
         public async Task<IActionResult> CreateContact(CreateContactDTO createContactDTO)
         {
             if (!ModelState.IsValid)

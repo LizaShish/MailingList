@@ -3,10 +3,13 @@ using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
+using MailingList.Interface;
+using MailingList.Extensions;
+
 
 namespace MailingList.Services
 {
-    public class EmailService
+    public class EmailService : IEmailService
     {
         private readonly AppDBContext _appDBContext;
         private readonly IConfiguration _configuration;
@@ -24,13 +27,13 @@ namespace MailingList.Services
                 page = 1;
             }
 
-            var EmailsQuery = _appDBContext.EmailMessages.AsQueryable();
+            var EmailsQuery = _appDBContext.EmailMessages.AsQueryable()
+                .FilterBySearchString(searchString);
 
             if (!string.IsNullOrEmpty(searchString))
             {
                 EmailsQuery = EmailsQuery.Where
                 (email =>
-                 //email.Email.Contains(searchString) ||
                  email.Subject.Contains(searchString) ||
                  email.Body.Contains(searchString)
                 );
@@ -56,7 +59,6 @@ namespace MailingList.Services
                 SearchTerm = searchString
             };
 
-
             return modelEmail;
         }
 
@@ -66,7 +68,7 @@ namespace MailingList.Services
 
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(emailSettings["SenderName"], emailSettings["SenderEmail"]));
-            message.To.Add(new MailboxAddress(" ", recipient)); // брать с фронта
+            message.To.Add(new MailboxAddress(" ", recipient));
             message.Subject = subject;
 
             message.Body = new TextPart("plain")
@@ -76,39 +78,28 @@ namespace MailingList.Services
 
             using(var client  = new SmtpClient())
             {
-                try
-                {
-                    var smtpServer = emailSettings["SmtpServer"];
-                    await client.ConnectAsync(emailSettings["SmtpServer"], int.Parse(emailSettings["Port"]), MailKit.Security.SecureSocketOptions.SslOnConnect);
-                    await client.AuthenticateAsync(emailSettings["UserName"], emailSettings["Password"]);
-                    var result = await client.SendAsync(message);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Ошибка отправки: {ex.Message}");
-
-                }
-                finally
-                {
-                    await client.DisconnectAsync(true);
-                }
+                var smtpServer = emailSettings["SmtpServer"];
+                await client.ConnectAsync(emailSettings["SmtpServer"], int.Parse(emailSettings["Port"]), 
+                    MailKit.Security.SecureSocketOptions.SslOnConnect);
+                await client.AuthenticateAsync(emailSettings["UserName"], emailSettings["Password"]);
+                var result = await client.SendAsync(message);
             }
         }
 
         public async Task SaveEmailMessageAsync(CreateEmailMessageDTO emailMessageDTO)
         {
-            if (Guid.TryParse(emailMessageDTO.ContactId, out var contactGuid))
+            if (Guid.TryParse(emailMessageDTO.ContactId, out var contactId))
             {
                 var emailMessage = new EmailMessage
                 {
                     Id = Guid.NewGuid(),
-                    //3 Сохранить контактайди
-                    ContactId = contactGuid,
+                    ContactId = contactId,
                     Subject = emailMessageDTO.Subject,
                     Body = emailMessageDTO.Body,
                     CreatedOn = DateTime.UtcNow
 
                 };
+
                 _appDBContext.EmailMessages.Add(emailMessage);
                 await _appDBContext.SaveChangesAsync();
             }
@@ -116,7 +107,6 @@ namespace MailingList.Services
             {
                 throw new ArgumentException("ContactId должен быть допустимым Guid.");
             }
-           
         }
     }
 }
