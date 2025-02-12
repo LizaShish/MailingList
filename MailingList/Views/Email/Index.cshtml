@@ -1,0 +1,52 @@
+﻿@model MailingList.Models.ReadEmailDTO
+
+<h1>Отправленные письма</h1>
+<a href="/Email/CreateEmail" class="btn btn-primary" style="margin-bottom:20px">Create email</a>
+<a href="/Contact/Index" class="btn btn-primary" style="margin-bottom:20px">Contacts</a>
+<form method="get" asp-action="Index" asp-controller="Email">
+    <input type="text" name="searchString" placeholder="Поиск..." value="@Model.SearchTerm" />
+    <button type="submit">Искать</button>
+</form>
+<style>
+    .table td, .table th {
+        padding-left: 15px; 
+        padding-right: 15px; 
+    }
+</style>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Body</th>
+            <th>CreatedOn</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var email in Model.Emails)
+        {
+            <tr>
+                <td>@email.Contact.Email</td>
+                <td>@email.Subject</td>
+                <td>@email.Body</td>
+                <td>@email.CreatedOn.ToString("g")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>
+    @if(Model.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination">
+                @for (int i=1; i <=Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("EmailMessages", new { page = i, searchString = Model.SearchTerm })">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
