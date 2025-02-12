@@ -27,13 +27,14 @@ namespace MailingList.Services
             return contacts;
         }
 
-        public async Task<string> GetContactEmailByIdAsync(string contactId)
+        public async Task<string> GetEmailByContactIdAsync(Guid contactId)
         {
-            Guid contactGuid = new Guid(contactId);
+           
             var contact = await _appDBContext.Contacts
-                .Where(c => c.Id == contactGuid)
+                .Where(c => c.Id == contactId)
                 .FirstOrDefaultAsync();
-            if(contact != null)
+
+            if (contact != null)
             {
                 return contact.Email;
             }
@@ -50,12 +51,12 @@ namespace MailingList.Services
                 page = 1;
             }
 
-            var contactsQuery = _appDBContext.Contacts.AsQueryable()
-                .FilterBySearchString(searchString);
+            var contactsQuery = _appDBContext.Contacts
+                .SearchContact(searchString);
 
             var contactsCount = await contactsQuery.CountAsync();
 
-            var paginatedContacts = await _appDBContext.Contacts
+            var paginatedContacts = await contactsQuery
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

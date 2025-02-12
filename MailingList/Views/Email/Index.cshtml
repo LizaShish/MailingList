@@ -7,7 +7,12 @@
     <input type="text" name="searchString" placeholder="Поиск..." value="@Model.SearchTerm" />
     <button type="submit">Искать</button>
 </form>
-
+<style>
+    .table td, .table th {
+        padding-left: 15px; 
+        padding-right: 15px; 
+    }
+</style>
 <table class="table">
     <thead>
         <tr>
@@ -21,7 +26,7 @@
         @foreach (var email in Model.Emails)
         {
             <tr>
-                
+                <td>@email.Contact.Email</td>
                 <td>@email.Subject</td>
                 <td>@email.Body</td>
                 <td>@email.CreatedOn.ToString("g")</td>

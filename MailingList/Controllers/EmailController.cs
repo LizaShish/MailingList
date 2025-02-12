@@ -55,7 +55,12 @@ namespace MailingList.Controllers
 
             try
             {
-                var email = await _contactService.GetContactEmailByIdAsync(createEmailMessageDTO.ContactId);
+                if (!createEmailMessageDTO.ContactId.HasValue)
+                {
+                    ViewBag.Message = "Не выбран контакт.";
+                    return View("createEmailMessageDTO");
+                }
+                var email = await _contactService.GetEmailByContactIdAsync(createEmailMessageDTO.ContactId.Value);
 
                 await _emailService.SentEmailAsync(email, createEmailMessageDTO.Subject,
                     createEmailMessageDTO.Body);

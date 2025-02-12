@@ -1,11 +1,12 @@
 ﻿using MailingList.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Runtime.CompilerServices;
 
 namespace MailingList.Extensions
 {
     public static class IQueryableExtensions
     {
-        public static IQueryable<Contact> FilterBySearchString(this IQueryable<Contact> query, string searchString)
+        public static IQueryable<Contact> SearchContact(this IQueryable<Contact> query, string searchString)
         {
             if (!string.IsNullOrEmpty(searchString))
             {
@@ -15,12 +16,14 @@ namespace MailingList.Extensions
             return query;
         }
 
-        public static IQueryable<EmailMessage> FilterBySearchString(this IQueryable<EmailMessage> query, string searchString)
+        public static IQueryable<EmailMessage> SearchEmailMessage(this IQueryable<EmailMessage> query, string searchString)
         {
             if (!string.IsNullOrEmpty(searchString))
             {
-                query = query.Where(email => email.Subject.Contains(searchString) ||
-                  email.Body.Contains(searchString));
+                query = query.Include(email => email.Contact)
+                    .Where(email => email.Subject.Contains(searchString) ||
+                  email.Body.Contains(searchString) ||
+                  email.Contact.Email.Contains(searchString));// select чтобы проверить все связанные контакты, из контакта достать поле email
             }
             return query;
         }

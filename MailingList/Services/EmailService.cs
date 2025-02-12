@@ -27,18 +27,10 @@ namespace MailingList.Services
                 page = 1;
             }
 
-            var EmailsQuery = _appDBContext.EmailMessages.AsQueryable()
-                .FilterBySearchString(searchString);
-
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                EmailsQuery = EmailsQuery.Where
-                (email =>
-                 email.Subject.Contains(searchString) ||
-                 email.Body.Contains(searchString)
-                );
-            }
-
+            var EmailsQuery = _appDBContext.EmailMessages  //include contacts 
+                .Include(email => email.Contact)
+                .SearchEmailMessage(searchString);
+           
             var totalItems = await EmailsQuery.CountAsync();
 
             var paginatedEmails = await EmailsQuery
@@ -88,12 +80,12 @@ namespace MailingList.Services
 
         public async Task SaveEmailMessageAsync(CreateEmailMessageDTO emailMessageDTO)
         {
-            if (Guid.TryParse(emailMessageDTO.ContactId, out var contactId))
+            if (emailMessageDTO.ContactId.HasValue)
             {
                 var emailMessage = new EmailMessage
                 {
                     Id = Guid.NewGuid(),
-                    ContactId = contactId,
+                    ContactId = emailMessageDTO.ContactId.Value,
                     Subject = emailMessageDTO.Subject,
                     Body = emailMessageDTO.Body,
                     CreatedOn = DateTime.UtcNow
